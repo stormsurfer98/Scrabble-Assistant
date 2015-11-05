@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+	<html>
+		<head>
+			<title>Scrabble Assistant</title>
+			<link href='https://fonts.googleapis.com/css?family=Raleway:400,800,600' rel='stylesheet' type='text/css'>
+			<link rel="stylesheet" type="text/css" href="css/main.css"/>
+			<script src="js/jquery-2.1.4.min.js"></script>
+		</head>
+
+		<body bgcolor="#D3D3D3">
+			<center>
+				<span id="header">
+					<br>
+					<h1 id="start">Scrabble Assistant</h1>
+					<h4><em>Find and build words for Scrabble!</em></h4>
+					<br>
+				</span>
+
+				<div>
+					<table>
+						<tr>
+							<th style="visibility:hidden; width: 5px;"></th>
+							<th><input id="board-1" onblur="makeCaps(this)"></input></th>
+							<th><input id="board-2" onblur="makeCaps(this)"></input></th>
+							<th><input id="board-3" onblur="makeCaps(this)"></input></th>
+							<th><input id="board-4" onblur="makeCaps(this)"></input></th>
+							<th><input id="board-5" onblur="makeCaps(this)"></input></th>
+							<th><input id="board-6" onblur="makeCaps(this)"></input></th>
+							<th><input id="board-7" onblur="makeCaps(this)"></input></th>
+							<th><input id="board-8" onblur="makeCaps(this)"></input></th>
+							<th><input id="board-9" onblur="makeCaps(this)"></input></th>
+							<th><input id="board-10" onblur="makeCaps(this)"></input></th>
+							<th style="visibility:hidden; width: 5px;"></th>
+						</tr>
+					</table>
+					<h6 id="board" style="margin-top: 10px;"><em>THE BOARD (POINTS EARNED: 0)</em></h6>
+				</div>
+
+				<div>
+					<table>
+						<tr>
+							<th style="visibility:hidden; width: 5px;"></th>
+							<th><input id="rack-1" onblur="updateRack(this)"></input></th>
+							<th><input id="rack-2" onblur="updateRack(this)"></input></th>
+							<th><input id="rack-3" onblur="updateRack(this)"></input></th>
+							<th><input id="rack-4" onblur="updateRack(this)"></input></th>
+							<th><input id="rack-5" onblur="updateRack(this)"></input></th>
+							<th><input id="rack-6" onblur="updateRack(this)"></input></th>
+							<th><input id="rack-7" onblur="updateRack(this)"></input></th>
+							<th style="visibility:hidden; width: 5px;"></th>
+						</tr>
+					</table>
+					<h6 id="rack" style="margin-top: 10px;"><em>YOUR RACK (AVAILABLE POINTS: 0)</em></h6>
+				</div>
+
+				<button id="button" onclick="createRegEx()">FIND BEST MATCH</button>
+			</center>
+
+			<script src="js/main.js"></script>
+		</body>
+	</html>
