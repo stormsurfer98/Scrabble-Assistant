@@ -19,8 +19,30 @@ function main() {
 }
 main();
 
+function changeValue(element, event) {
+	if(event.target == element) {
+		if(element.style.background == "rgb(173, 216, 230)") element.style.background = "#87B986";
+		else if(element.style.background == "rgb(135, 185, 134)") element.style.background = "#F4A460";
+		else element.style.background = "#ADD8E6";
+	}
+}
+
+function nextElement(element) {
+	if(element.value.match(/[a-z]/i)) {
+		element.previousElementSibling.style.display = "block";
+		element.previousElementSibling.innerHTML = pointsTable[element.value.toUpperCase()].toString();
+		if(element.id == "board-10") document.getElementById("rack-1").focus();
+		else if(element.id == "rack-7") document.getElementById("button").focus();
+		else element.parentElement.nextElementSibling.lastElementChild.focus();
+	} else {
+		element.previousElementSibling.style.display = "none";
+		element.previousElementSibling.innerHTML = "";
+		element.value = "";
+	}
+}
+
 function makeCaps(element) {
-	element.value = element.value.toUpperCase().substring(0, 1);
+	element.value = element.value.toUpperCase();
 }
 
 function getPoints(word) {
@@ -32,9 +54,6 @@ function getPoints(word) {
 }
 
 function updateBoard(word, points) {
-	document.getElementById("board").innerHTML = "<em>THE BOARD (POINTS EARNED: " + points + ")</em>";
-	document.getElementById("rack").innerHTML = "<em>YOUR RACK (AVAILABLE POINTS: " + (rackPoints-points) + ")</em>";
-
 	//modify board colors
 	var boardString = "";
 	for(i=1; i<=10; i++) {
@@ -45,24 +64,34 @@ function updateBoard(word, points) {
 	var matches = boardString.match(/\w+/);
 	if(matches) index = boardString.indexOf(matches[0]) - word.indexOf(matches[0]);
 	else index = 0;
+	var count = 0;
+	var extraPoints = 0;
 	for(i=0; i<word.length; i++) {
 		var el = document.getElementById("board-"+(index+i+1));
 		if(el.value === undefined || el.value === "") {
 			el.value = word[i];
-			el.parentElement.style.background = "#5A6351";
+			el.previousElementSibling.style.display = "block";
+			el.previousElementSibling.innerHTML = pointsTable[word[i]].toString();
+			if(el.parentElement.style.background == "rgb(173, 216, 230)") extraPoints += pointsTable[word[i]];
+			else if(el.parentElement.style.background == "rgb(135, 185, 134)") extraPoints += 2*pointsTable[word[i]];
+			else el.parentElement.style.background = "#5A6351";
 
 			//modify rack colors
 			for(j=1; j<=7; j++) {
 				var newEl = document.getElementById("rack-"+j);
-				if(el.value == newEl.value && el.parentElement.style.background != "#FF0000") {
+				if(el.value == newEl.value && newEl.parentElement.style.background != "rgb(255, 0, 0)") {
 					newEl.parentElement.style.background = "#FF0000";
+					count += 1;
 					break;
 				}
 			}
 		}
 	}
+	if(count == 7) extraPoints += 50;
 
-	//update button
+	//update button and scores
+	document.getElementById("board").innerHTML = "<em>THE BOARD (POINTS EARNED: " + (points+extraPoints) + ")</em>";
+	document.getElementById("rack").innerHTML = "<em>YOUR RACK (AVAILABLE POINTS: " + (rackPoints-points) + ")</em>";
 	document.getElementById("button").innerHTML = "RESET BOARD";
 	document.getElementById("button").onclick = function() { resetBoard(); };
 }
@@ -81,6 +110,7 @@ function updateRack(element) {
 function findMatches(regEx) {
 	var bestWord = "";
 	var maxPoints = 0;
+	var lostPoints = 0;
 	var alphaCount = {};
 	for(var i=0; i<26; i++) alphaCount[alphabet[i]] = 0;
 	var boardPoints = 0;
@@ -100,6 +130,7 @@ function findMatches(regEx) {
 	}
 
 	//look for matches
+	matchFound = false;
 	for(i=0; i<words.length; i++) {
 		if(words[i].match(regEx)) {
 			var alphaCountCopy = $.extend({}, alphaCount);
@@ -109,34 +140,68 @@ function findMatches(regEx) {
 				if(alphaCountCopy[words[i][j]] < 0) enoughLetters = false;
 			}
 			if(enoughLetters) {
+				matchFound = true;
 				var points = getPoints(words[i]) - boardPoints;
-				if(points > maxPoints) {
+
+				var boardString = "";
+				for(j=1; j<=10; j++) {
+					ch = document.getElementById("board-"+j).value;
+					if(ch !== undefined && ch !== "") boardString += ch;
+					else boardString += " ";
+				}
+				var matches = boardString.match(/\w+/);
+				if(matches) index = boardString.indexOf(matches[0]) - words[i].indexOf(matches[0]);
+				else index = 0;
+				var count = 0;
+				var extraPoints = 0;
+				for(j=0; j<words[i].length; j++) {
+					var el = document.getElementById("board-"+(index+j+1));
+					if(el.value === undefined || el.value === "") {
+						if(el.parentElement.style.background == "rgb(173, 216, 230)") extraPoints += pointsTable[words[i][j]];
+						else if(el.parentElement.style.background == "rgb(135, 185, 134)") extraPoints += 2*pointsTable[words[i][j]];
+						count += 1;
+					}
+				}
+				if(count == 7) extraPoints += 50;
+
+				if(points+extraPoints > maxPoints) {
 					bestWord = words[i];
-					maxPoints = points;
+					lostPoints = points;
+					maxPoints = points + extraPoints;
 				}
 			}
 		}
 	}
-
-	updateBoard(bestWord, maxPoints);
+	if(!matchFound) {
+		alert("No matches found!");
+		document.getElementById("board-1").focus();
+	} else {
+		updateBoard(bestWord, lostPoints);
+	}
 }
 
 function resetBoard() {
 	//reset colors
 	for(i=1; i<=10; i++) {
+		document.getElementById("board-"+i+"-h").innerHTML = "";
+		document.getElementById("board-"+i+"-h").style.display = "none";
 		document.getElementById("board-"+i).value = "";
 		document.getElementById("board-"+i).parentElement.style.background = "#F4A460";
 	}
 	for(i=1; i<=7; i++) {
+		document.getElementById("rack-"+i+"-h").innerHTML = "";
+		document.getElementById("rack-"+i+"-h").style.display = "none";
 		document.getElementById("rack-"+i).value = "";
 		document.getElementById("rack-"+i).parentElement.style.background = "#F4A460";
 	}
 	rackPoints = 0;
+	document.getElementById("board").innerHTML = "<em>THE BOARD (POINTS EARNED: 0)</em>";
 	document.getElementById("rack").innerHTML = "<em>YOUR RACK (AVAILABLE POINTS: 0)</em>";
 
 	//reset button
 	document.getElementById("button").innerHTML = "FIND BEST MATCH";
 	document.getElementById("button").onclick = function() { createRegEx(); };
+	document.getElementById("board-1").focus();
 }
 
 function createRegEx() {
@@ -170,6 +235,6 @@ function createRegEx() {
 	}
 
 	//find available tiles on rack
-	regEx = "^" + regEx + "$";
+	regEx = ("^" + regEx + "$").replace(/\./g, "\\w");
 	findMatches(new RegExp(regEx));
 }
